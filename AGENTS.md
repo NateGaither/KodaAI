@@ -1,3 +1,11 @@
+# REQUIRED FOR ALL CODEX SESSIONS
+
+Every Codex prompt must:
+1. Read AGENTS.md before making changes
+2. Declare a session scope (CORE / MEMORY / PERSONALITY / INFRA)
+3. Make only minimal diffs inside that scope
+4. Avoid any cross-layer edits
+
 # Koda AI — Agent Operating Rules
 
 This file defines strict rules for Codex and any automated agent working on this repository.
