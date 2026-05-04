@@ -35,6 +35,7 @@ def _memory_entries_from_memory(memory: object) -> list[dict]:
 
 def build_runtime_personality(personality: dict | None, memory: object) -> str:
     """Build deterministic personality prefix with subtle memory influence."""
+
     personality = personality or {}
 
     identity = personality.get("identity")

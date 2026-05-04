@@ -50,7 +50,6 @@ def validate_memory_entry(entry: dict) -> bool:
     except Exception:
         return False
 
-
 class Memory:
     """In-memory placeholder with a structured write gate."""
 
@@ -83,7 +82,10 @@ class Memory:
         existing_messages = {e.get("message") for e in self._entries if isinstance(e, dict)}
         existing_responses = {e.get("response") for e in self._entries if isinstance(e, dict)}
 
-        is_duplicate = entry.get("message") in existing_messages or entry.get("response") in existing_responses
+        is_duplicate = (
+            entry.get("message") in existing_messages
+            or entry.get("response") in existing_responses
+        )
 
         scored_entry = dict(entry)
         scored_entry["_is_duplicate"] = is_duplicate
@@ -92,48 +94,46 @@ class Memory:
         self._entries.append(entry)
         return True
 
-def get_relevant_memories(self, limit: int = 10, min_score: float = 0.5) -> list[dict]:
-    filtered = [
-        dict(entry)
-        for entry in self._entries
-        if isinstance(entry, dict)
-        and float(entry.get("importance", 0.0)) >= min_score
-    ]
+    def get_relevant_memories(self, limit: int = 10, min_score: float = 0.5) -> list[dict]:
+        filtered = [
+            dict(entry)
+            for entry in self._entries
+            if isinstance(entry, dict)
+            and float(entry.get("importance", 0.0)) >= min_score
+        ]
 
-    filtered.sort(
-        key=lambda entry: float(entry.get("importance", 0.0)),
-        reverse=True
-    )
+        filtered.sort(
+            key=lambda entry: float(entry.get("importance", 0.0)),
+            reverse=True
+        )
 
-    return filtered[:limit]
+        return filtered[:limit]
 
+    def export_for_runtime(self) -> list[dict]:
+        """Return a stable flat list with runtime memory contract fields."""
+        exported: list[dict] = []
 
-def export_for_runtime(self) -> list[dict]:
-    """Return a stable flat list with runtime memory contract fields."""
-    exported: list[dict] = []
+        for entry in self._entries:
+            if not isinstance(entry, dict):
+                continue
 
-    for entry in self._entries:
-        if not isinstance(entry, dict):
-            continue
+            runtime_entry = {
+                "mode": entry.get("mode"),
+                "intent": entry.get("intent"),
+                "message": entry.get("message"),
+                "response": entry.get("response"),
+            }
 
-        runtime_entry = {
-            "mode": entry.get("mode"),
-            "intent": entry.get("intent"),
-            "message": entry.get("message"),
-            "response": entry.get("response"),
-        }
+            if "importance" in entry:
+                runtime_entry["importance"] = entry.get("importance")
 
-        if "importance" in entry:
-            runtime_entry["importance"] = entry.get("importance")
+            if not validate_memory_entry(runtime_entry):
+                continue
 
-        if not validate_memory_entry(runtime_entry):
-            continue
+            exported.append(runtime_entry)
 
-        exported.append(runtime_entry)
+        return exported
 
-    return exported
-
-
-def export_for_signals(self) -> list[dict]:
-    """Signal extraction uses runtime contract only."""
-    return self.export_for_runtime()
+    def export_for_signals(self) -> list[dict]:
+        """Signal extraction uses runtime contract only."""
+        return self.export_for_runtime()
