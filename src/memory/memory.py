@@ -35,3 +35,7 @@ class Memory:
 
         self._entries.append(entry)
         return True
+
+    def export_for_signals(self) -> list[dict]:
+        """Return a stable, flat copy of entries for signal extraction."""
+        return [dict(entry) for entry in self._entries if isinstance(entry, dict)]

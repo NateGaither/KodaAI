@@ -1,5 +1,22 @@
+from typing import Any
+
+
+def _normalize_entries(memory_entries: Any) -> list[dict]:
+    if isinstance(memory_entries, list):
+        return [entry for entry in memory_entries if isinstance(entry, dict)]
+
+    export_for_signals = getattr(memory_entries, "export_for_signals", None)
+    if callable(export_for_signals):
+        exported = export_for_signals()
+        if isinstance(exported, list):
+            return [entry for entry in exported if isinstance(entry, dict)]
+
+    return []
+
+
 def extract_memory_signals(memory_entries: list[dict]) -> dict:
     """Extract deterministic memory signals from memory entries."""
+    normalized_entries = _normalize_entries(memory_entries)
 
     preference_keywords = ("prefer", "preference", "favorite", "likes", "dislike")
     emotion_keywords = ("happy", "sad", "angry", "anxious", "excited", "stressed", "calm")
@@ -9,10 +26,7 @@ def extract_memory_signals(memory_entries: list[dict]) -> dict:
     emotional_patterns: list[str] = []
     recurring_topics: list[str] = []
 
-    for entry in memory_entries:
-        if not isinstance(entry, dict):
-            continue
-
+    for entry in normalized_entries:
         text = str(entry.get("text", "")).strip().lower()
         tags = entry.get("tags", [])
         normalized_tags = [tag.lower() for tag in tags if isinstance(tag, str)] if isinstance(tags, list) else []
