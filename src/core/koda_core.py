@@ -21,6 +21,7 @@ class KodaCore:
             model=selected_model,
             input=message,
             context=context,
+            personality=None,
             plan=plan,
             tool_results=None,
         )
@@ -28,8 +29,9 @@ class KodaCore:
         self._write_memory(message=message, response=response, plan=plan)
         return response
 
-    def _load_context(self, message: str) -> str:
-        return self.memory.context_for(message)
+    def _load_context(self, message: str) -> dict:
+        del message
+        return {"memory": self.memory.get_relevant_memories()}
 
     def _write_memory(self, message: str, response: str, plan: object) -> None:
         entry = {
