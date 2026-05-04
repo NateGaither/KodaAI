@@ -17,14 +17,27 @@ class LLMClient:
     ) -> str:
         del model, tool_results
 
+        # ─────────────────────────────
+        # Conversation mode
+        # ─────────────────────────────
         if plan is None:
-            memory = context.get("memory") if isinstance(context, dict) else None
-            personality_prefix = build_runtime_personality(personality, memory)
+            memory = None
+            if isinstance(context, dict):
+                memory = context.get("memory")
+
+            personality_prefix = ""
+            if personality:
+                personality_prefix = build_runtime_personality(personality, memory)
+
             return f"{personality_prefix}Received: {input}"
 
+        # ─────────────────────────────
+        # Agent mode
+        # ─────────────────────────────
         intent = getattr(plan, "intent", None)
         if intent is None and isinstance(plan, dict):
             intent = plan.get("intent")
+
         intent_label = intent if isinstance(intent, str) and intent else "general"
 
         return (
