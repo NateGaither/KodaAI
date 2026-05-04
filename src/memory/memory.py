@@ -92,38 +92,48 @@ class Memory:
         self._entries.append(entry)
         return True
 
-    def get_relevant_memories(self, limit: int = 10, min_score: float = 0.5) -> list[dict]:
-        filtered = [
-            dict(entry)
-            for entry in self._entries
-            if isinstance(entry, dict) and float(entry.get("importance", 0.0)) >= min_score
-        ]
-        filtered.sort(key=lambda entry: float(entry.get("importance", 0.0)), reverse=True)
-        return filtered[:limit]
+def get_relevant_memories(self, limit: int = 10, min_score: float = 0.5) -> list[dict]:
+    filtered = [
+        dict(entry)
+        for entry in self._entries
+        if isinstance(entry, dict)
+        and float(entry.get("importance", 0.0)) >= min_score
+    ]
 
-    def export_for_runtime(self) -> list[dict]:
-        """Return a stable flat list with runtime memory contract fields."""
-        exported: list[dict] = []
-        for entry in self._entries:
-            if not isinstance(entry, dict):
-                continue
+    filtered.sort(
+        key=lambda entry: float(entry.get("importance", 0.0)),
+        reverse=True
+    )
 
-            runtime_entry = {
-                "mode": entry.get("mode"),
-                "intent": entry.get("intent"),
-                "message": entry.get("message"),
-                "response": entry.get("response"),
-            }
-            if "importance" in entry:
-                runtime_entry["importance"] = entry.get("importance")
+    return filtered[:limit]
 
-            if not validate_memory_entry(runtime_entry):
-                continue
 
-            exported.append(runtime_entry)
+def export_for_runtime(self) -> list[dict]:
+    """Return a stable flat list with runtime memory contract fields."""
+    exported: list[dict] = []
 
-        return exported
+    for entry in self._entries:
+        if not isinstance(entry, dict):
+            continue
 
-    def export_for_signals(self) -> list[dict]:
-        """Return a stable, flat copy of entries for signal extraction."""
-        return self.export_for_runtime()
+        runtime_entry = {
+            "mode": entry.get("mode"),
+            "intent": entry.get("intent"),
+            "message": entry.get("message"),
+            "response": entry.get("response"),
+        }
+
+        if "importance" in entry:
+            runtime_entry["importance"] = entry.get("importance")
+
+        if not validate_memory_entry(runtime_entry):
+            continue
+
+        exported.append(runtime_entry)
+
+    return exported
+
+
+def export_for_signals(self) -> list[dict]:
+    """Signal extraction uses runtime contract only."""
+    return self.export_for_runtime()
