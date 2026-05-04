@@ -1,5 +1,7 @@
 from typing import Any
 
+from src.personality.runtime_personality import build_runtime_personality
+
 
 class LLMClient:
     """Stable LLM boundary for future provider integration."""
@@ -8,10 +10,25 @@ class LLMClient:
         self,
         model: str,
         input: str,
-        context: Any,
-        plan: Any,
+        context: dict,
+        personality: dict | None,
         tool_results: Any | None,
+        plan: object | None,
     ) -> str:
-        del model, context, plan, tool_results
+        del model, tool_results
 
-        return f"Received: {input}"
+        if plan is None:
+            memory = context.get("memory") if isinstance(context, dict) else None
+            personality_prefix = build_runtime_personality(personality, memory)
+            return f"{personality_prefix}Received: {input}"
+
+        intent = getattr(plan, "intent", None)
+        if intent is None and isinstance(plan, dict):
+            intent = plan.get("intent")
+        intent_label = intent if isinstance(intent, str) and intent else "general"
+
+        return (
+            f"[agent-mode:{intent_label}] "
+            "[structured_reasoning_placeholder] "
+            f"Result: {input}"
+        )
