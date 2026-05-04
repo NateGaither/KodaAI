@@ -14,11 +14,15 @@ def _normalize_entries(memory_entries: Any) -> list[dict]:
     return []
 
 
-def extract_memory_signals(memory_entries: list[dict]) -> dict:
+def extract_memory_signals(memory_entries: Any) -> dict:
     """Extract deterministic memory signals from high-importance memory entries."""
+
     normalized_entries = _normalize_entries(memory_entries)
+
     high_importance_entries = [
-        entry for entry in normalized_entries if float(entry.get("importance", 0.0)) >= 0.5
+        entry
+        for entry in normalized_entries
+        if float(entry.get("importance", 0.0)) >= 0.5
     ]
 
     preference_keywords = ("prefer", "preference", "favorite", "likes", "dislike")
@@ -31,16 +35,24 @@ def extract_memory_signals(memory_entries: list[dict]) -> dict:
 
     for entry in high_importance_entries:
         text_parts = []
+
         if isinstance(entry.get("message"), str):
             text_parts.append(entry["message"])
+
         if isinstance(entry.get("response"), str):
             text_parts.append(entry["response"])
+
         if isinstance(entry.get("text"), str):
             text_parts.append(entry["text"])
 
         text = " ".join(text_parts).strip().lower()
+
         tags = entry.get("tags", [])
-        normalized_tags = [tag.lower() for tag in tags if isinstance(tag, str)] if isinstance(tags, list) else []
+        normalized_tags = (
+            [tag.lower() for tag in tags if isinstance(tag, str)]
+            if isinstance(tags, list)
+            else []
+        )
 
         if text and any(keyword in text for keyword in preference_keywords):
             preferences.append(text)
@@ -53,6 +65,7 @@ def extract_memory_signals(memory_entries: list[dict]) -> dict:
             if tag in topic_tags:
                 recurring_topics.append(tag)
 
+    # Deduplicate while preserving deterministic insertion order
     preferences = list(dict.fromkeys(preferences))
     emotional_patterns = list(dict.fromkeys(emotional_patterns))
     recurring_topics = list(dict.fromkeys(recurring_topics))

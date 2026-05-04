@@ -50,7 +50,6 @@ def validate_memory_entry(entry: dict) -> bool:
     except Exception:
         return False
 
-
 class Memory:
     """In-memory placeholder with a structured write gate."""
 
@@ -83,7 +82,10 @@ class Memory:
         existing_messages = {e.get("message") for e in self._entries if isinstance(e, dict)}
         existing_responses = {e.get("response") for e in self._entries if isinstance(e, dict)}
 
-        is_duplicate = entry.get("message") in existing_messages or entry.get("response") in existing_responses
+        is_duplicate = (
+            entry.get("message") in existing_messages
+            or entry.get("response") in existing_responses
+        )
 
         scored_entry = dict(entry)
         scored_entry["_is_duplicate"] = is_duplicate
@@ -96,14 +98,21 @@ class Memory:
         filtered = [
             dict(entry)
             for entry in self._entries
-            if isinstance(entry, dict) and float(entry.get("importance", 0.0)) >= min_score
+            if isinstance(entry, dict)
+            and float(entry.get("importance", 0.0)) >= min_score
         ]
-        filtered.sort(key=lambda entry: float(entry.get("importance", 0.0)), reverse=True)
+
+        filtered.sort(
+            key=lambda entry: float(entry.get("importance", 0.0)),
+            reverse=True
+        )
+
         return filtered[:limit]
 
     def export_for_runtime(self) -> list[dict]:
         """Return a stable flat list with runtime memory contract fields."""
         exported: list[dict] = []
+
         for entry in self._entries:
             if not isinstance(entry, dict):
                 continue
@@ -114,6 +123,7 @@ class Memory:
                 "message": entry.get("message"),
                 "response": entry.get("response"),
             }
+
             if "importance" in entry:
                 runtime_entry["importance"] = entry.get("importance")
 
@@ -125,5 +135,5 @@ class Memory:
         return exported
 
     def export_for_signals(self) -> list[dict]:
-        """Return a stable, flat copy of entries for signal extraction."""
+        """Signal extraction uses runtime contract only."""
         return self.export_for_runtime()
