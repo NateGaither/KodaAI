@@ -1,6 +1,6 @@
 from typing import Any
 
-from src.utils.personality_formatter import format_personality
+from src.personality.runtime_personality import build_runtime_personality
 
 
 class LLMClient:
@@ -15,10 +15,11 @@ class LLMClient:
         tool_results: Any | None,
         plan: object | None,
     ) -> str:
-        del model, context, tool_results
+        del model, tool_results
 
         if plan is None:
-            personality_prefix = format_personality(personality)
+            memory = context.get("memory") if isinstance(context, dict) else None
+            personality_prefix = build_runtime_personality(personality, memory)
             return f"{personality_prefix}Received: {input}"
 
         intent = getattr(plan, "intent", None)
