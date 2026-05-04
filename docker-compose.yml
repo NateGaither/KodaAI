@@ -1,0 +1,5 @@
+services:
+  koda:
+    build:
+      context: .
+      dockerfile: Dockerfile
