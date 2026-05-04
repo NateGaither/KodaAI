@@ -15,18 +15,24 @@ class LLMClient:
         tool_results: Any | None,
         plan: object | None,
     ) -> str:
-        del model, tool_results
+del model, tool_results
 
-        if plan is None:
-            memory = context.get("memory") if isinstance(context, dict) else None
-            personality_prefix = build_runtime_personality(personality, memory)
-            return f"{personality_prefix}Received: {input}"
+if plan is None:
+    memory = None
+    if isinstance(context, dict):
+        memory = context.get("memory")
 
-        intent = getattr(plan, "intent", None)
-        if intent is None and isinstance(plan, dict):
-            intent = plan.get("intent")
-        intent_label = intent if isinstance(intent, str) and intent else "general"
+    personality_prefix = ""
+    if personality:
+        personality_prefix = build_runtime_personality(personality, memory)
 
+    return f"{personality_prefix}Received: {input}"
+
+intent = getattr(plan, "intent", None)
+if intent is None and isinstance(plan, dict):
+    intent = plan.get("intent")
+
+intent_label = intent if isinstance(intent, str) and intent else "general"
         return (
             f"[agent-mode:{intent_label}] "
             "[structured_reasoning_placeholder] "
