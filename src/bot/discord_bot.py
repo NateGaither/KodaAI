@@ -40,9 +40,6 @@ class KodaDiscordBot(discord.Client):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
-        if self.owner_id is None or message.author.id != self.owner_id:
-            return
-
         content = message.content.strip()
         if not content:
             return
@@ -55,8 +52,12 @@ class KodaDiscordBot(discord.Client):
             await message.channel.send("memory reset not implemented")
             return
 
-        response = self.core.handle_message(content)
-        await message.channel.send(response)
+        try:
+            response = self.core.handle_message(content, str(message.author.id))
+            await message.channel.send(response)
+        except Exception as exc:
+            print(f"Error handling Discord message: {exc}")
+            await message.channel.send("Sorry, I hit an internal error while processing that message.")
 
 
 def run_bot() -> None:
