@@ -26,6 +26,8 @@ def _load_env_file(path: str = ".env") -> None:
 class KodaDiscordBot(discord.Client):
     def __init__(self) -> None:
         intents = discord.Intents.default()
+        intents.guilds = True
+        intents.messages = True
         intents.message_content = True
         super().__init__(intents=intents)
 
@@ -38,21 +40,29 @@ class KodaDiscordBot(discord.Client):
         print(f"Logged in as {self.user} ({self.user.id})")
 
     async def on_message(self, message: discord.Message) -> None:
-        if message.author.bot:
-            return
-        content = message.content.strip()
-        if not content:
-            return
-
-        if content == "!ping":
-            await message.channel.send("pong")
-            return
-
-        if content == "!reset":
-            await message.channel.send("memory reset not implemented")
-            return
-
         try:
+            print(
+                f"on_message fired: author={message.author} "
+                f"channel={getattr(message.channel, 'id', 'unknown')}"
+            )
+            if message.author.bot:
+                return
+            if self.user and message.author.id == self.user.id:
+                return
+
+            content = message.content.strip()
+            print(f"received content length: {len(content)}")
+            if not content:
+                return
+
+            if content == "!ping":
+                await message.channel.send("pong")
+                return
+
+            if content == "!reset":
+                await message.channel.send("memory reset not implemented")
+                return
+
             response = self.core.handle_message(content, str(message.author.id))
             await message.channel.send(response)
         except Exception as exc:
